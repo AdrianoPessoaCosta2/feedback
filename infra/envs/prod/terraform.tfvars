@@ -1,1 +1,1 @@
-bucket_name = "prod"
+bucket_name = "proj-prod-170202974334-us-east-2"

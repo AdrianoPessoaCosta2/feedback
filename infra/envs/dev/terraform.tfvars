@@ -1,1 +1,1 @@
-bucket_name = "dev"
+bucket_name = "proj-dev-170202974334-us-east-2"
