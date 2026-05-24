@@ -46,6 +46,10 @@ jobs:
       - name: Terraform Init
         run: |
           cd infra
+
+          rm -rf .terraform
+          rm -f .terraform.lock.hcl
+
           terraform init \
             -reconfigure \
             -backend-config="bucket=${{ inputs.aws-statefile-s3-bucket }}" \
