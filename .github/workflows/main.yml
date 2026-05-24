@@ -15,6 +15,6 @@
 #    with:
 #      environment: prod
 #      aws-assume-role-arn: "arn:aws:iam::{{ sua conta aws }}:role/{{ nome da role }}"
-#      aws-region: "sa-east-1"
+#      aws-region: "us-east-2"
 #      aws-statefile-s3-bucket: "{{ nome do bucket s3 }}"
 #      aws-lock-dynamodb-table: "{{ nome da tabela do dynamodb }}"
