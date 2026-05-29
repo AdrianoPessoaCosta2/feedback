@@ -1,2 +1,7 @@
 .idea
 .terraform
+*.plan
+*.tfstate
+*.tfstate.backup
+.terraform.tfstate.lock.info
+crash.log
