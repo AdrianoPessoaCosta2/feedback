@@ -4,4 +4,15 @@
 *.tfstate
 *.tfstate.backup
 .terraform.tfstate.lock.info
+.terraform.lock.hcl
 crash.log
+
+# Java / Maven
+target/
+*.class
+*.jar
+!lambda-email/src/**/*.jar
+
+# OS
+.DS_Store
+*.swp
