@@ -112,7 +112,6 @@ jobs:
         env:
           TF_ENV: ${{ inputs.environment }}
         run: |
-          cd infra
           terraform workspace select -or-create "${TF_ENV}"
           terraform plan \
             -var-file="./envs/${TF_ENV}/terraform.tfvars" \
@@ -176,6 +175,5 @@ jobs:
         env:
           TF_ENV: ${{ inputs.environment }}
         run: |
-          cd infra
           terraform workspace select -or-create "${TF_ENV}"
           terraform apply -auto-approve "${TF_ENV}.plan"
