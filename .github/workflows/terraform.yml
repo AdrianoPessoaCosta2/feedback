@@ -28,10 +28,10 @@ jobs:
         working-directory: infra
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
         with:
           terraform_version: 1.8.3
 
@@ -44,20 +44,26 @@ jobs:
             terraform-providers-
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
         with:
           role-to-assume: ${{ inputs.aws-assume-role-arn }}
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
           aws-region: ${{ inputs.aws-region }}
 
       - name: Terraform Init
+        env:
+          TF_ENV: ${{ inputs.environment }}
+          TF_BUCKET: ${{ inputs.aws-statefile-s3-bucket }}
+          TF_REGION: ${{ inputs.aws-region }}
+          TF_LOCK_TABLE: ${{ inputs.aws-lock-dynamodb-table }}
+          TF_REPO: ${{ github.event.repository.name }}
         run: |
           terraform init \
             -reconfigure \
-            -backend-config="bucket=${{ inputs.aws-statefile-s3-bucket }}" \
-            -backend-config="key=${{ github.event.repository.name }}/${{ inputs.environment }}/terraform.tfstate" \
-            -backend-config="region=${{ inputs.aws-region }}" \
-            -backend-config="dynamodb_table=${{ inputs.aws-lock-dynamodb-table }}"
+            -backend-config="bucket=${TF_BUCKET}" \
+            -backend-config="key=${TF_REPO}/${TF_ENV}/terraform.tfstate" \
+            -backend-config="region=${TF_REGION}" \
+            -backend-config="dynamodb_table=${TF_LOCK_TABLE}"
 
       - name: Terraform Validate
         run: terraform validate
@@ -102,11 +108,15 @@ jobs:
             -backend-config="dynamodb_table=${{ inputs.aws-lock-dynamodb-table }}"
 
       - name: Terraform Plan
+        id: terraform-plan
+        env:
+          TF_ENV: ${{ inputs.environment }}
         run: |
-          terraform workspace select -or-create ${{ inputs.environment }}
+          cd infra
+          terraform workspace select -or-create "${TF_ENV}"
           terraform plan \
-            -var-file="./envs/${{ inputs.environment }}/terraform.tfvars" \
-            -out="${{ inputs.environment }}.plan"
+            -var-file="./envs/${TF_ENV}/terraform.tfvars" \
+            -out="${TF_ENV}.plan"
 
       - name: Upload Plan Artifact
         uses: actions/upload-artifact@v4
@@ -162,6 +172,10 @@ jobs:
           path: infra
 
       - name: Terraform Apply
+        id: terraform-apply
+        env:
+          TF_ENV: ${{ inputs.environment }}
         run: |
-          terraform workspace select -or-create ${{ inputs.environment }}
-          terraform apply -auto-approve "${{ inputs.environment }}.plan"
+          cd infra
+          terraform workspace select -or-create "${TF_ENV}"
+          terraform apply -auto-approve "${TF_ENV}.plan"
