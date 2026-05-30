@@ -246,6 +246,13 @@ resource "aws_iam_role_policy" "ec2_policy" {
           "dynamodb:Query"
         ]
         Resource = [aws_dynamodb_table.feedback.arn]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject"
+        ]
+        Resource = ["${aws_s3_bucket.bucket.arn}/apps/*"]
       }
     ]
   })
@@ -329,6 +336,8 @@ resource "aws_instance" "quarkus_api" {
   user_data = base64encode(templatefile("${path.module}/templates/quarkus-userdata.sh", {
     aws_region    = var.aws_region
     sns_topic_arn = aws_sns_topic.feedback.arn
+    s3_bucket     = var.bucket_name
+    environment   = var.environment
   }))
 
   tags = {
@@ -352,6 +361,8 @@ resource "aws_instance" "spring_service" {
     aws_region     = var.aws_region
     sqs_queue_url  = aws_sqs_queue.feedback.url
     dynamodb_table = aws_dynamodb_table.feedback.name
+    s3_bucket      = var.bucket_name
+    environment    = var.environment
   }))
 
   tags = {
