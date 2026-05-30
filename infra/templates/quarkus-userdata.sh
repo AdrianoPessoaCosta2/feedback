@@ -2,9 +2,12 @@
 set -euo pipefail
 
 yum update -y
-yum install -y java-21-amazon-corretto docker
-systemctl enable docker --now
-usermod -aG docker ec2-user
+yum install -y java-21-amazon-corretto aws-cli
+
+mkdir -p /opt/app
+
+# Download application JAR from S3
+aws s3 cp "s3://${s3_bucket}/apps/${environment}/api-quarkus.jar" /opt/app/quarkus-run.jar
 
 cat > /etc/systemd/system/quarkus-api.service <<'EOF'
 [Unit]
@@ -24,5 +27,6 @@ RestartSec=10
 WantedBy=multi-user.target
 EOF
 
-mkdir -p /opt/app
+chown -R ec2-user:ec2-user /opt/app
 systemctl daemon-reload
+systemctl enable quarkus-api --now

@@ -118,13 +118,25 @@ jobs:
         working-directory: lambda-email
         run: mvn -B package -DskipTests
 
-      - name: Upload Lambda JAR to S3
+      - name: Build Quarkus JAR
+        working-directory: api-quarkus
+        run: mvn -B package -DskipTests -Dquarkus.package.jar.type=uber-jar
+
+      - name: Build Spring JAR
+        working-directory: service-spring
+        run: mvn -B package -DskipTests
+
+      - name: Upload artifacts to S3
         env:
           TF_ENV: ${{ inputs.environment }}
         run: |
           BUCKET=$(grep 'bucket_name' ./envs/${TF_ENV}/terraform.tfvars | cut -d'"' -f2)
           aws s3 cp ../lambda-email/target/lambda-email-1.0.0-SNAPSHOT.jar \
             "s3://${BUCKET}/lambda/${TF_ENV}/lambda-email.jar"
+          aws s3 cp ../api-quarkus/target/api-quarkus-1.0.0-SNAPSHOT-runner.jar \
+            "s3://${BUCKET}/apps/${TF_ENV}/api-quarkus.jar"
+          aws s3 cp ../service-spring/target/service-spring-1.0.0-SNAPSHOT.jar \
+            "s3://${BUCKET}/apps/${TF_ENV}/service-spring.jar"
 
       - name: Terraform Plan
         id: terraform-plan
