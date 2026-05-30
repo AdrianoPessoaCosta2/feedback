@@ -258,6 +258,11 @@ resource "aws_iam_role_policy" "ec2_policy" {
   })
 }
 
+resource "aws_iam_role_policy_attachment" "ec2_ssm" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
 resource "aws_iam_instance_profile" "ec2" {
   name = "${local.prefix}-ec2-profile"
   role = aws_iam_role.ec2_role.name
@@ -327,11 +332,12 @@ data "aws_ami" "amazon_linux" {
 }
 
 resource "aws_instance" "quarkus_api" {
-  ami                    = data.aws_ami.amazon_linux.id
-  instance_type          = var.ec2_instance_type
-  key_name               = var.ec2_key_name != "" ? var.ec2_key_name : null
-  iam_instance_profile   = aws_iam_instance_profile.ec2.name
-  vpc_security_group_ids = [aws_security_group.app.id]
+  ami                         = data.aws_ami.amazon_linux.id
+  instance_type               = var.ec2_instance_type
+  key_name                    = var.ec2_key_name != "" ? var.ec2_key_name : null
+  iam_instance_profile        = aws_iam_instance_profile.ec2.name
+  vpc_security_group_ids      = [aws_security_group.app.id]
+  associate_public_ip_address = true
 
   user_data = base64encode(templatefile("${path.module}/templates/quarkus-userdata.sh", {
     aws_region    = var.aws_region
@@ -351,11 +357,12 @@ resource "aws_instance" "quarkus_api" {
 # EC2 — Spring Service
 # ──────────────────────────────────────────────
 resource "aws_instance" "spring_service" {
-  ami                    = data.aws_ami.amazon_linux.id
-  instance_type          = var.ec2_instance_type
-  key_name               = var.ec2_key_name != "" ? var.ec2_key_name : null
-  iam_instance_profile   = aws_iam_instance_profile.ec2.name
-  vpc_security_group_ids = [aws_security_group.app.id]
+  ami                         = data.aws_ami.amazon_linux.id
+  instance_type               = var.ec2_instance_type
+  key_name                    = var.ec2_key_name != "" ? var.ec2_key_name : null
+  iam_instance_profile        = aws_iam_instance_profile.ec2.name
+  vpc_security_group_ids      = [aws_security_group.app.id]
+  associate_public_ip_address = true
 
   user_data = base64encode(templatefile("${path.module}/templates/spring-userdata.sh", {
     aws_region     = var.aws_region
