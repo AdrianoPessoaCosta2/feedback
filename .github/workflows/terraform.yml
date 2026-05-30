@@ -107,6 +107,25 @@ jobs:
             -backend-config="region=${{ inputs.aws-region }}" \
             -backend-config="dynamodb_table=${{ inputs.aws-lock-dynamodb-table }}"
 
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: corretto
+          java-version: '21'
+          cache: maven
+
+      - name: Build Lambda JAR
+        working-directory: lambda-email
+        run: mvn -B package -DskipTests
+
+      - name: Upload Lambda JAR to S3
+        env:
+          TF_ENV: ${{ inputs.environment }}
+        run: |
+          BUCKET=$(grep 'bucket_name' ./envs/${TF_ENV}/terraform.tfvars | cut -d'"' -f2)
+          aws s3 cp ../lambda-email/target/lambda-email-1.0-SNAPSHOT.jar \
+            "s3://${BUCKET}/lambda/${TF_ENV}/lambda-email.jar"
+
       - name: Terraform Plan
         id: terraform-plan
         env:
