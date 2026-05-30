@@ -170,7 +170,6 @@ resource "aws_lambda_function" "email" {
     variables = {
       SENDER_EMAIL = var.sender_email
       ADMIN_EMAIL  = var.admin_email
-      AWS_REGION   = var.aws_region
     }
   }
 
