@@ -123,7 +123,7 @@ jobs:
           TF_ENV: ${{ inputs.environment }}
         run: |
           BUCKET=$(grep 'bucket_name' ./envs/${TF_ENV}/terraform.tfvars | cut -d'"' -f2)
-          aws s3 cp ../lambda-email/target/lambda-email-1.0-SNAPSHOT.jar \
+          aws s3 cp ../lambda-email/target/lambda-email-1.0.0-SNAPSHOT.jar \
             "s3://${BUCKET}/lambda/${TF_ENV}/lambda-email.jar"
 
       - name: Terraform Plan
